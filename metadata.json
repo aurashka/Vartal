@@ -1,0 +1,7 @@
+{
+  "name": "Firebase React Chat App",
+  "description": "A feature-rich, real-time chat application built with React, TypeScript, Firebase, and Tailwind CSS. It supports user authentication, global user search, private messaging with replies, reactions, forwarding, and image uploads via ImgBB.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

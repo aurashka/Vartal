@@ -1,0 +1,105 @@
+
+{
+  "rules": {
+    "users": {
+      ".read": "auth != null",
+      ".indexOn": ["displayName", "handle"],
+      "$uid": {
+        ".write": "auth != null && (auth.uid === $uid || root.child('users/' + auth.uid + '/role').val() === 'admin')"
+      }
+    },
+    "handles": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "messages": {
+      "$chatId": {
+        ".read": "auth != null && root.child('userChats/' + auth.uid + '/' + $chatId).exists()",
+        ".write": "auth != null",
+        ".indexOn": "timestamp"
+      }
+    },
+    "userChats": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".indexOn": "lastMessage/timestamp"
+      }
+    },
+    "typing": {
+      "$chatId": {
+        ".read": "auth != null && root.child('userChats/' + auth.uid + '/' + $chatId).exists()",
+        "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+        }
+      }
+    },
+    "stories": {
+      ".read": "auth != null",
+      ".indexOn": ["expiresAt", "author/uid"],
+      "$storyId": {
+        ".write": "auth != null && (!data.exists() || data.child('author/uid').val() === auth.uid)",
+        "likedBy": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        }
+      }
+    },
+    "posts": {
+      ".read": "auth != null",
+      ".indexOn": ["timestamp", "privacy", "author/uid"],
+      "$postId": {
+        ".write": "auth != null && (!data.exists() || data.child('author/uid').val() === auth.uid || root.child('users/' + auth.uid + '/role').val() === 'admin')",
+        "likedBy": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        }
+      }
+    },
+    "comments": {
+      "$postId": {
+        ".read": "auth != null",
+        ".indexOn": "timestamp",
+        "$commentId": {
+          ".write": "auth != null && (!data.exists() || data.child('author/uid').val() === auth.uid || root.child('users/' + auth.uid + '/role').val() === 'admin' || root.child('posts/' + $postId + '/author/uid').val() === auth.uid)",
+           "likedBy": {
+              "$uid": {
+                ".write": "auth != null && auth.uid === $uid"
+              }
+           }
+        }
+      }
+    },
+    "following": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "followers": {
+       "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "highlights": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "notifications": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null",
+        ".indexOn": ["timestamp", "read"]
+      }
+    },
+    "appData": {
+        ".read": "auth != null",
+        ".write": "root.child('users/' + auth.uid + '/role').val() === 'admin'"
+    }
+  }
+}

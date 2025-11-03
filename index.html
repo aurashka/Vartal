@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firebase React Chat App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --color-primary-hue: 221;
+        --color-primary-saturation: 83%;
+        --color-primary-lightness: 53%;
+      }
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+      /* Hide scrollbar for IE, Edge and Firefox */
+      body, html {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+        position: relative; /* For pseudo-element positioning */
+      }
+      /* Ambient "Armend" effect */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(165deg, hsla(var(--color-primary-hue), var(--color-primary-saturation), var(--color-primary-lightness), 0.1), transparent 50%);
+        z-index: -1; /* Place it behind all content */
+        pointer-events: none;
+      }
+      @keyframes slide-in-bottom {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .animate-slide-in-bottom {
+        animation: slide-in-bottom 0.3s ease-out forwards;
+      }
+      @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .animate-fade-in {
+        animation: fade-in 0.3s ease-out forwards;
+      }
+       @keyframes float-heart {
+        0% { transform: scale(0.5); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.8; }
+        100% { transform: scale(1.5) translateY(-100px); opacity: 0; }
+      }
+      .animate-float-heart {
+        animation: float-heart 1.2s ease-out forwards;
+      }
+      @keyframes highlight-fade {
+        from { background-color: hsla(var(--color-primary-hue), var(--color-primary-saturation), var(--color-primary-lightness), 0.3); }
+        to { background-color: transparent; }
+      }
+      .highlight {
+        animation: highlight-fade 2.5s ease-out forwards;
+        border-radius: 8px;
+        padding: 4px;
+        margin: -4px;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: `hsl(var(--color-primary-hue) var(--color-primary-saturation) var(--color-primary-lightness))`,
+              'primary-hover': `hsl(var(--color-primary-hue) var(--color-primary-saturation) calc(var(--color-primary-lightness) - 5%))`,
+              'primary-focus': `hsl(var(--color-primary-hue) var(--color-primary-saturation) calc(var(--color-primary-lightness) + 5%))`,
+            }
+          }
+        }
+      }
+    </script>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/",
+    "lodash.debounce": "https://aistudiocdn.com/lodash.debounce@^4.0.8"
+  }
+}
+</script>
+  </head>
+  <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <div id="root" class="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-black"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
