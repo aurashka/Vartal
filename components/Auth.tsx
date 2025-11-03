@@ -43,8 +43,17 @@ const getFriendlyAuthError = (err: any): string => {
             return 'Password should be at least 6 characters.';
         case 'auth/too-many-requests':
             return 'Too many attempts. Please try again later.';
+        case 'auth/popup-blocked':
+            return 'Popup blocked by browser. Please allow popups for this site and try again.';
+        case 'auth/popup-closed-by-user':
+            return 'Login cancelled. The popup was closed before completion.';
+        case 'auth/cancelled-popup-request':
+             return 'Login cancelled. Multiple popup requests were made.';
+        case 'auth/unauthorized-domain':
+            return 'This domain is not authorized for login. Please contact support.';
         default:
-            return message.replace('Firebase: ', '').replace(/ \(.+\)\.$/, '.');
+            // Return a cleaner message but keep the code for debugging.
+            return message.replace('Firebase: ', '').replace(/ \(.+\)\.$/, ` (${code || 'unknown'})`);
     }
 };
 

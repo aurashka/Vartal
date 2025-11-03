@@ -31,7 +31,7 @@ const VerticalLoader = () => (
 );
 
 const CreatePost: React.FC<CreatePostProps> = ({ onClose, postToEdit }) => {
-    const { appUser, currentUser } = useAuth();
+    const { appUser, currentUser, following } = useAuth();
     const isEditMode = !!postToEdit;
 
     const [text, setText] = useState(postToEdit?.text || '');
@@ -59,15 +59,22 @@ const CreatePost: React.FC<CreatePostProps> = ({ onClose, postToEdit }) => {
             if (snapshot.exists()) {
                 const usersData: AppUser[] = [];
                 snapshot.forEach(child => {
-                    if (child.key !== currentUser?.uid) { // Exclude self
-                        usersData.push({ uid: child.key!, ...child.val() });
+                    const user = { uid: child.key!, ...child.val() } as AppUser;
+                    if (user.uid === currentUser?.uid) return;
+
+                    const mentionSetting = user.mentionSettings || 'everyone';
+                    if (mentionSetting === 'none') return;
+                    if (mentionSetting === 'following' && (!following || !following[user.uid])) {
+                        return;
                     }
+
+                    usersData.push(user);
                 });
                 setAllUsers(usersData);
             }
             setLoadingUsers(false);
         });
-    }, [currentUser]);
+    }, [currentUser, following]);
 
     useEffect(() => {
         const fetchMentionedUsersData = () => {

@@ -11,9 +11,10 @@ interface DrawerProps {
   onClose: () => void;
   onOpenAdminPanel: () => void;
   onEditProfile: () => void;
+  onOpenPrivacySettings: () => void;
 }
 
-const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, onOpenAdminPanel, onEditProfile }) => {
+const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, onOpenAdminPanel, onEditProfile, onOpenPrivacySettings }) => {
   const { appUser } = useAuth();
 
   if (!appUser) return null;
@@ -24,8 +25,12 @@ const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, onOpenAdminPanel, onEd
   };
   
   const handleSignOut = () => {
-    sessionStorage.setItem('skipRememberedAccounts', 'true');
-    auth.signOut();
+    onClose(); // Start the closing animation
+    // Delay sign-out to allow the drawer animation to complete for a smoother UX
+    setTimeout(() => {
+        sessionStorage.setItem('skipRememberedAccounts', 'true');
+        auth.signOut();
+    }, 300); // Matches the transition duration-300 in the className
   };
 
   return (
@@ -66,6 +71,16 @@ const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, onOpenAdminPanel, onEd
                     <span className="font-medium">Admin Panel</span>
                 </button>
             )}
+            <button
+                onClick={() => {
+                    onOpenPrivacySettings();
+                    onClose();
+                }}
+                className="w-full flex items-center justify-start gap-3 p-3 text-gray-800 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-left"
+            >
+                <ShieldIcon className="w-5 h-5 text-primary flex-shrink-0" />
+                <span className="font-medium">Privacy & Security</span>
+            </button>
             <div className="p-4 bg-gray-100 dark:bg-gray-900 rounded-lg">
               <p className="font-medium mb-2 text-sm text-gray-600 dark:text-gray-300">Theme</p>
               <ThemeSwitcher />

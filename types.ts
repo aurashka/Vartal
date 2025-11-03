@@ -32,6 +32,9 @@ export interface AppUser {
   followers?: { [uid: string]: true };
   following?: { [uid: string]: true };
   blockedUsers?: { [uid: string]: true };
+  isPrivate?: boolean;
+  mentionSettings?: 'everyone' | 'following' | 'none';
+  messageSettings?: 'everyone' | 'following';
 }
 
 export interface Reaction {

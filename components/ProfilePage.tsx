@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../App';
-import { BookmarkIcon, GridIcon, TagIcon, PlusIcon, PlusCircleIcon, MessageCircleIcon, ChevronLeftIcon, ChevronDownIcon, MenuIcon, MapPinIcon, ClockIcon, CheckCircleIcon, HeartIcon } from './common/Icons';
+import { BookmarkIcon, GridIcon, PlusIcon, PlusCircleIcon, MessageCircleIcon, ChevronLeftIcon, ChevronDownIcon, MenuIcon, MapPinIcon, ClockIcon, CheckCircleIcon, HeartIcon } from './common/Icons';
 import Avatar from './common/Avatar';
 import { Post, AppUser, Story, Highlight } from '../types';
 import { db, auth } from '../services/firebase';
@@ -52,52 +52,13 @@ interface ProfilePageProps {
     onViewArchivedStories?: (user: AppUser, stories: Story[], startIndex: number) => void;
 }
 
-const TaggedPostItem: React.FC<{ post: Post; onSelectPost: (post: Post) => void; }> = ({ post, onSelectPost }) => {
-    const mediaUrl = post.imageUrls?.[0]?.thumb || post.gifUrl;
-    const likeCount = post.likedBy ? Object.keys(post.likedBy).length : 0;
-    const commentCount = post.commentsCount || 0;
-    
-    return (
-        <div onClick={() => onSelectPost(post)} className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden group cursor-pointer">
-            {mediaUrl ? (
-                <ProgressiveImage 
-                    src={post.imageUrls?.[0]?.full || post.gifUrl!}
-                    placeholderSrc={mediaUrl}
-                    alt="tagged post"
-                    imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                />
-            ) : (
-                <div className="p-2 text-sm truncate h-full flex items-center justify-center text-center">
-                    {post.text}
-                </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex flex-col justify-end p-2 text-white">
-                <div className="flex items-center gap-2">
-                   <Avatar photoURL={post.author.photoURL} displayName={post.author.displayName} className="w-5 h-5"/>
-                   <p className="font-semibold text-xs truncate">{post.author.displayName}</p>
-                </div>
-                <div className="flex items-center justify-between text-xs mt-1">
-                    <span className="font-mono">{timeAgo(post.timestamp)}</span>
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1"><HeartIcon className="w-3 h-3"/> {likeCount}</div>
-                        <div className="flex items-center gap-1"><MessageCircleIcon className="w-3 h-3"/> {commentCount}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
 const ProfilePage: React.FC<ProfilePageProps> = ({ user, onBack, onSelectPost, onOpenDrawer, onEditProfile, onStartChat, onViewArchivedStories }) => {
     const { appUser: loggedInUser, following: loggedInUserFollowing } = useAuth();
-    const [activeTab, setActiveTab] = useState<'posts' | 'stories' | 'tagged' | 'saved'>('posts');
+    const [activeTab, setActiveTab] = useState<'posts' | 'stories' | 'saved'>('posts');
     const [userPosts, setUserPosts] = useState<Post[]>([]);
     const [isLoadingPosts, setIsLoadingPosts] = useState(true);
     const [bookmarkedPosts, setBookmarkedPosts] = useState<Post[]>([]);
     const [isLoadingBookmarks, setIsLoadingBookmarks] = useState(false);
-    const [taggedPosts, setTaggedPosts] = useState<Post[]>([]);
-    const [isLoadingTaggedPosts, setIsLoadingTaggedPosts] = useState(true);
     const [showUnfollowConfirm, setShowUnfollowConfirm] = useState(false);
     const [userAllStories, setUserAllStories] = useState<Story[]>([]);
     const [isLoadingStories, setIsLoadingStories] = useState(true);
@@ -248,32 +209,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onBack, onSelectPost, o
         }
     }, [activeTab, profileUser, isOwnProfile]);
     
-    useEffect(() => {
-        if (!profileUser) return;
-        if (activeTab === 'tagged') {
-            setIsLoadingTaggedPosts(true);
-            const taggedPostsRef = ref(db, `taggedPosts/${profileUser.uid}`);
-            get(taggedPostsRef).then(snapshot => {
-                if (snapshot.exists()) {
-                    const postIds = Object.keys(snapshot.val());
-                    const postPromises = postIds.map(id => get(ref(db, `posts/${id}`)));
-                    Promise.all(postPromises)
-                        .then(snapshots => {
-                            const posts = snapshots
-                                .map((snap, index) => snap.exists() ? { id: postIds[index], ...snap.val() } : null)
-                                .filter((p): p is Post => p !== null && p.author)
-                                .sort((a, b) => b.timestamp - a.timestamp);
-                            setTaggedPosts(posts);
-                        })
-                        .finally(() => setIsLoadingTaggedPosts(false));
-                } else {
-                    setTaggedPosts([]);
-                    setIsLoadingTaggedPosts(false);
-                }
-            });
-        }
-    }, [profileUser, activeTab]);
-
     if (!profileUser) return null;
 
     const handleAddAccount = () => {
@@ -439,28 +374,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onBack, onSelectPost, o
         );
     }
     
-    const renderTaggedPosts = () => {
-        if (isLoadingTaggedPosts) {
-            return <BentoGridSkeleton />;
-        }
-        if (taggedPosts.length === 0) {
-            return (
-                <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-gray-400">
-                    <TagIcon className="w-16 h-16 mb-4"/>
-                    <h2 className="text-xl font-bold">Photos of you</h2>
-                    <p className="text-sm mt-2 text-center">When people tag you in photos, they'll appear here.</p>
-                </div>
-            );
-        }
-        return (
-            <div className="grid grid-cols-3 gap-1">
-                {taggedPosts.map(post => (
-                    <TaggedPostItem key={post.id} post={post} onSelectPost={onSelectPost!} />
-                ))}
-            </div>
-        );
-    };
-
     const renderSavedPosts = () => {
         if (isLoadingBookmarks) {
             return <BentoGridSkeleton />;
@@ -515,12 +428,27 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onBack, onSelectPost, o
             followButtonText = 'Follow Back';
         }
 
+        const canSendMessage = () => {
+            if (!loggedInUser || !profileUser) return false;
+            const messageSetting = profileUser.messageSettings || 'everyone';
+            if (messageSetting === 'following') {
+                return !!(loggedInUserFollowing && loggedInUserFollowing[profileUser.uid]);
+            }
+            return true;
+        };
+
         return (
              <>
                 <button onClick={handleFollowToggle} className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-colors ${followButtonClass}`}>
                     {followButtonText}
                 </button>
-                <button onClick={() => onStartChat && onStartChat(profileUser)} className="flex-1 py-2.5 text-sm font-semibold bg-gray-200 dark:bg-gray-800 rounded-lg">Message</button>
+                <button 
+                    onClick={() => onStartChat && onStartChat(profileUser)} 
+                    disabled={!canSendMessage()}
+                    className="flex-1 py-2.5 text-sm font-semibold bg-gray-200 dark:bg-gray-800 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Message
+                </button>
             </>
         );
     };
@@ -642,7 +570,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onBack, onSelectPost, o
                     </div>
 
                     <div className="border-y border-gray-200 dark:border-gray-800">
-                        <div className={`grid ${isOwnProfile ? 'grid-cols-4' : 'grid-cols-3'} text-center text-gray-500 dark:text-gray-400`}>
+                        <div className={`grid ${isOwnProfile ? 'grid-cols-3' : 'grid-cols-2'} text-center text-gray-500 dark:text-gray-400`}>
                             <button onClick={() => setActiveTab('posts')} className={`py-3 relative ${activeTab === 'posts' ? 'text-primary' : ''}`}>
                                 <GridIcon className="w-6 h-6 mx-auto"/>
                                 {activeTab === 'posts' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></span>}
@@ -650,10 +578,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onBack, onSelectPost, o
                              <button onClick={() => setActiveTab('stories')} className={`py-3 relative ${activeTab === 'stories' ? 'text-primary' : ''}`}>
                                 <ClockIcon className="w-6 h-6 mx-auto"/>
                                 {activeTab === 'stories' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></span>}
-                            </button>
-                            <button onClick={() => setActiveTab('tagged')} className={`py-3 relative ${activeTab === 'tagged' ? 'text-primary' : ''}`}>
-                                <TagIcon className="w-6 h-6 mx-auto" />
-                                {activeTab === 'tagged' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></span>}
                             </button>
                             {isOwnProfile && (
                                 <button onClick={() => setActiveTab('saved')} className={`py-3 relative ${activeTab === 'saved' ? 'text-primary' : ''}`}>
@@ -667,7 +591,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onBack, onSelectPost, o
                     <div className="p-1">
                         {activeTab === 'posts' && renderUserPosts()}
                         {activeTab === 'stories' && renderUserStories()}
-                        {activeTab === 'tagged' && renderTaggedPosts()}
                         {isOwnProfile && activeTab === 'saved' && renderSavedPosts()}
                     </div>
                 </div>

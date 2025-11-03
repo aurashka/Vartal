@@ -22,6 +22,7 @@ import Modal from './common/Modal';
 import CreateStory from './CreateStory';
 import StoryViewer from './StoryViewer';
 import NotificationsPage from './NotificationsPage';
+import PrivacySettings from './PrivacySettings';
 
 // Helper functions for Avatar rendering
 const getInitials = (name: string | null | undefined) => {
@@ -208,8 +209,9 @@ const SearchPage: React.FC<{
                 const users: AppUser[] = [];
                 if (usersSnap.exists()) {
                     usersSnap.forEach(child => {
-                        if (child.key !== currentUser.uid) {
-                            users.push({ uid: child.key!, ...child.val() });
+                        const userData = child.val();
+                        if (child.key !== currentUser.uid && !userData.isPrivate) {
+                            users.push({ uid: child.key!, ...userData });
                         }
                     });
                 }
@@ -729,6 +731,7 @@ const ChatLayout: React.FC = () => {
     const [totalUnreadNotifs, setTotalUnreadNotifs] = useState(0);
     const [showNotifications, setShowNotifications] = useState(false);
     const [exitConfirm, setExitConfirm] = useState(false);
+    const [showPrivacySettings, setShowPrivacySettings] = useState(false);
     const exitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Stories state
@@ -776,6 +779,7 @@ const ChatLayout: React.FC = () => {
             setExitConfirm(false);
 
             // Priority 1: Close any open "modal" view.
+            if (showPrivacySettings) { setShowPrivacySettings(false); return; }
             if (storyViewerData) { setStoryViewerData(null); return; }
             if (isCreateStoryOpen) { setCreateStoryOpen(false); return; }
             if (isEditingProfile) { setIsEditingProfile(false); return; }
@@ -821,7 +825,7 @@ const ChatLayout: React.FC = () => {
                 clearTimeout(exitTimeoutRef.current);
             }
         };
-    }, [isEditingProfile, isCreatePostOpen, viewingPost, viewingProfile, selectedChatUser, activeTab, exitConfirm, storyViewerData, isCreateStoryOpen, showNotifications]);
+    }, [isEditingProfile, isCreatePostOpen, viewingPost, viewingProfile, selectedChatUser, activeTab, exitConfirm, storyViewerData, isCreateStoryOpen, showNotifications, showPrivacySettings]);
 
     const pushHistoryState = (view: string) => {
         window.history.pushState({ view }, '');
@@ -922,6 +926,9 @@ const ChatLayout: React.FC = () => {
     }
 
     // New render logic with correct view hierarchy
+    if (showPrivacySettings) {
+        return <PrivacySettings onClose={handleBack} />;
+    }
     if (isEditingProfile && appUser) {
         return <UserProfile user={appUser} onClose={handleBack} />;
     }
@@ -961,6 +968,10 @@ const ChatLayout: React.FC = () => {
                 onClose={() => setIsDrawerOpen(false)} 
                 onOpenAdminPanel={() => setShowAdminPanel(true)}
                 onEditProfile={handleEditProfile}
+                onOpenPrivacySettings={() => {
+                    setShowPrivacySettings(true);
+                    pushHistoryState('privacySettings');
+                }}
             />
             {showAdminPanel && <AdminPanel onClose={() => setShowAdminPanel(false)} />}
             {isCreatePostOpen && <CreatePost onClose={handleBack} />}

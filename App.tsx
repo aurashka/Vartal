@@ -42,7 +42,8 @@ const App: React.FC = () => {
   const [loadingAppData, setLoadingAppData] = useState(true);
   
   useEffect(() => {
-    // Check for onboarding completion first
+    // This initial check provides a faster first screen for new users
+    // than waiting for onAuthStateChanged to fire.
     const onboardingCompleted = localStorage.getItem('onboardingCompleted') === 'true';
     if (!onboardingCompleted) {
       setUserState('onboarding');
@@ -64,8 +65,15 @@ const App: React.FC = () => {
         setCurrentUser(null);
         setAppUser(null);
         setFollowing(null);
-        if (onboardingCompleted) {
+        
+        // Re-read `onboardingCompleted` here to avoid using a stale value from the closure.
+        const currentOnboardingCompleted = localStorage.getItem('onboardingCompleted') === 'true';
+        if (currentOnboardingCompleted) {
           setUserState('auth');
+        } else {
+          // This handles the edge case where localStorage was cleared while logged in.
+          // On logout, if onboarding isn't complete, go to onboarding.
+          setUserState('onboarding');
         }
         setInitialLoading(false);
       }

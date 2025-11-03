@@ -92,6 +92,7 @@ const UserProfile: React.FC<{
   const [profession, setProfession] = useState(user.profession || '');
   const [maritalStatus, setMaritalStatus] = useState(user.maritalStatus || 'Prefer not to say');
   const [location, setLocation] = useState(user.location || '');
+  const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || '');
   const [tags, setTags] = useState<string[]>(user.tags || []);
   const [tagInput, setTagInput] = useState('');
   
@@ -138,7 +139,6 @@ const UserProfile: React.FC<{
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setNewImage(file);
-      // FIX: Explicitly cast `file` to `Blob` to resolve a potential type inference issue with URL.createObjectURL.
       setPreview(URL.createObjectURL(file as Blob));
     }
   };
@@ -170,6 +170,7 @@ const UserProfile: React.FC<{
     updates[`${basePath}/profession`] = profession;
     updates[`${basePath}/maritalStatus`] = maritalStatus;
     updates[`${basePath}/location`] = location;
+    updates[`${basePath}/phoneNumber`] = phoneNumber;
     updates[`${basePath}/tags`] = tags;
 
     if (handle !== user.handle) {
@@ -271,6 +272,9 @@ const UserProfile: React.FC<{
                 </FormField>
                  <FormField label="Location">
                     <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="w-full form-input"/>
+                </FormField>
+                <FormField label="Phone Number">
+                    <input type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="w-full form-input"/>
                 </FormField>
                 <FormField label="Marital Status">
                     <button type="button" onClick={() => setStatusModalOpen(true)} className="w-full form-input text-left flex justify-between items-center">
