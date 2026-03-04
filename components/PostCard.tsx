@@ -4,7 +4,7 @@ import { useAuth } from '../App';
 import { db } from '../services/firebase';
 import { ref, runTransaction, get, update, push, serverTimestamp, set } from 'firebase/database';
 import Avatar from './common/Avatar';
-import { HeartIcon, MessageSquareIcon, SendIcon, BookmarkIcon, MoreHorizontalIcon, ChevronLeftIcon, GlobeIcon, XIcon, UsersIcon, LockIcon, TrashIcon, PencilIcon, ShareIcon } from './common/Icons';
+import { HeartIcon, MessageSquareIcon, SendIcon, BookmarkIcon, MoreHorizontalIcon, ChevronLeftIcon, GlobeIcon, XIcon, UsersIcon, LockIcon, TrashIcon, PencilIcon, ShareIcon, ForwardIcon } from './common/Icons';
 import ProgressiveImage from './common/ProgressiveImage';
 import UserBadges from './common/UserBadges';
 import Modal from './common/Modal';
@@ -423,6 +423,36 @@ const PostCard: React.FC<{
         alert(`Post forwarded to ${recipientInfo.displayName}`);
     };
 
+    const handleShare = async () => {
+        setShowMenu(false);
+        if (!navigator.share) {
+            alert("Sharing is not supported on your browser.");
+            return;
+        }
+
+        const appName = "Firebase React Chat App";
+        
+        const shareData: ShareData = {
+            title: `Post by ${post.author.displayName} on ${appName}`,
+            text: post.text,
+        };
+
+        const mediaUrl = post.imageUrls?.[0]?.full || post.gifUrl;
+        if (mediaUrl) {
+            shareData.url = mediaUrl;
+            shareData.text = `${post.author.displayName} posted on ${appName}: ${post.text}`;
+        } else {
+            shareData.url = window.location.href;
+            shareData.text = `${post.author.displayName} posted on ${appName}: ${post.text}`;
+        }
+        
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            console.error('Error sharing post:', err);
+        }
+    };
+
     const MenuItem: React.FC<{
         icon: React.ReactNode;
         children: React.ReactNode;
@@ -478,7 +508,10 @@ const PostCard: React.FC<{
                                             <div className="my-1 h-px bg-gray-200 dark:bg-gray-700"></div>
                                         </>
                                     )}
-                                    <MenuItem icon={<ShareIcon className="w-5 h-5"/>} onClick={handleOpenForwardModal}>Forward...</MenuItem>
+                                    <MenuItem icon={<ForwardIcon className="w-5 h-5"/>} onClick={handleOpenForwardModal}>Forward to Chat</MenuItem>
+                                    {navigator.share && (
+                                        <MenuItem icon={<ShareIcon className="w-5 h-5"/>} onClick={handleShare}>Share Externally</MenuItem>
+                                    )}
                                     <MenuItem icon={<BookmarkIcon className="w-5 h-5" isFilled={isBookmarked}/>} onClick={handleBookmark}>
                                         {isBookmarked ? 'Remove Bookmark' : 'Bookmark'}
                                     </MenuItem>

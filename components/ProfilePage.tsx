@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../App';
-import { BookmarkIcon, GridIcon, PlusIcon, PlusCircleIcon, MessageCircleIcon, ChevronLeftIcon, ChevronDownIcon, MenuIcon, MapPinIcon, ClockIcon, CheckCircleIcon, HeartIcon } from './common/Icons';
+import { BookmarkIcon, GridIcon, PlusIcon, PlusCircleIcon, MessageCircleIcon, ChevronLeftIcon, ChevronDownIcon, MenuIcon, MapPinIcon, ClockIcon, CheckCircleIcon, HeartIcon, ShareIcon } from './common/Icons';
 import Avatar from './common/Avatar';
 import { Post, AppUser, Story, Highlight } from '../types';
 import { db, auth } from '../services/firebase';
@@ -288,6 +288,27 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onBack, onSelectPost, o
         }
     };
 
+    const handleShareProfile = async () => {
+        if (!navigator.share || !profileUser) return;
+        
+        const appName = "Firebase React Chat App";
+        
+        const photo = profileUser.photoURL;
+        const photoUrl = typeof photo === 'object' && photo ? photo.full : typeof photo === 'string' ? photo : null;
+
+        const shareData: ShareData = {
+            title: `Check out ${profileUser.displayName}'s profile on ${appName}`,
+            text: `${profileUser.displayName} (${profileUser.handle ? `@${profileUser.handle}` : ''}) on ${appName}. ${profileUser.bio || ''}`,
+            url: photoUrl || window.location.href,
+        };
+
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            console.error("Error sharing profile:", err);
+        }
+    };
+
     const postCount = userPosts.length;
     
     const StatItem: React.FC<{ value: string | number; label: string }> = ({ value, label }) => (
@@ -509,6 +530,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onBack, onSelectPost, o
                         )}
                     </div>
                     <div className="flex-1 flex justify-end items-center gap-2">
+                        {navigator.share && (
+                            <button onClick={handleShareProfile} className="p-2">
+                                <ShareIcon className="w-6 h-6"/>
+                            </button>
+                        )}
                         {isOwnProfile && (
                             <button onClick={onOpenDrawer} className="p-2"><MenuIcon className="w-6 h-6"/></button>
                         )}
